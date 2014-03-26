@@ -154,7 +154,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 		go func() {
 			select {
 			case <-rr.Cancel:
-				cancelled <-true
+				cancelled <- true
 				logger.Debug("send.request is cancelled")
 			case <-cancelRoutine:
 				return
