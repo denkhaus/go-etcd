@@ -42,6 +42,34 @@ func (c *Client) GetValue(path string) (string, error) {
 	return resp.Node.Value, nil
 }
 
+type enumFunc func(dir string)(error)
+
+func (c *Client) EnumerateDirs(path string, fn enumFunc) (int, error) {
+
+	resp, err := c.Get(path, false, false)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if !resp.Node.Dir {
+		return 0, fmt.Errorf("provided path % is not a directory", path)
+	}
+
+	nCount := 0
+	for _, node := range resp.Node.Nodes {
+		if node.Dir {
+			err := fn(node.Key)
+			if err != nil{
+				return nCount, err
+			}
+			nCount++
+		}
+	}
+
+	return nCount, nil
+}
+
 func (c *Client) DirectoryCount(path string) (int, error) {
 
 	resp, err := c.Get(path, false, false)
@@ -56,7 +84,9 @@ func (c *Client) DirectoryCount(path string) (int, error) {
 
 	nCount := 0
 	for _, node := range resp.Node.Nodes {
-		if node.Dir { nCount++ }
+		if node.Dir {
+			nCount++
+		}
 	}
 
 	return nCount, nil
